@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Application Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 font-sans text-gray-800">
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-800">Job Application Tracker</h1>
+        <p class="text-slate-500 text-sm mt-1">Lacak riwayat & progres lamaran kerja bersama</p>
+      </div>
+      <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-sm transition">
+        <i class="fa-solid fa-plus"></i> Tambah Lamaran
+      </button>
+    </div>
+
+    <!-- Navigation Tab -->
+    <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl p-1 shadow-sm">
+      <button id="tabMelin" onclick="switchTab('PUNYA MELIN')" class="flex-1 py-3 text-center font-bold rounded-lg text-sm transition text-slate-500 hover:text-blue-600">
+        <i class="fa-solid fa-user-check mr-2"></i> PUNYA MELIN
+      </button>
+      <button id="tabOlan" onclick="switchTab('PUNYA OLAN')" class="flex-1 py-3 text-center font-bold rounded-lg text-sm transition text-slate-500 hover:text-blue-600">
+        <i class="fa-solid fa-user-check mr-2"></i> PUNYA OLAN
+      </button>
+    </div>
+
+    <!-- Ringkasan Statistik -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <div class="text-slate-500 text-xs font-semibold uppercase">Total Lamaran</div>
+        <div id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <div class="text-slate-500 text-xs font-semibold uppercase">Tahap Interview</div>
+        <div id="statInterview" class="text-2xl font-bold text-purple-600 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <div class="text-slate-500 text-xs font-semibold uppercase">Diterima</div>
+        <div id="statAccepted" class="text-2xl font-bold text-emerald-600 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <div class="text-slate-500 text-xs font-semibold uppercase">Ditolak</div>
+        <div id="statRejected" class="text-2xl font-bold text-rose-600 mt-1">0</div>
+      </div>
+    </div>
+
+    <!-- Filter & Pencarian -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row gap-4">
+      <div class="flex-1 relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
+        <input type="text" id="searchInput" oninput="filterData()" placeholder="Cari perusahaan atau posisi..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+      </div>
+      <div class="w-full md:w-48">
+        <select id="statusFilter" onchange="filterData()" class="w-full py-2 px-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+          <option value="">Semua Status</option>
+          <option value="Terkirim">Terkirim</option>
+          <option value="Screening CV">Screening CV</option>
+          <option value="Psikotes">Psikotes</option>
+          <option value="Interview HR">Interview HR</option>
+          <option value="Interview User">Interview User</option>
+          <option value="Offering">Offering</option>
+          <option value="Diterima">Diterima</option>
+          <option value="Ditolak">Ditolak</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tabel Data -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase">
+            <th class="p-4 w-12 text-center">NO</th>
+            <th class="p-4">TANGGAL</th>
+            <th class="p-4">PERUSAHAAN</th>
+            <th class="p-4">POSISI</th>
+            <th class="p-4">APPLY VIA</th>
+            <th class="p-4 text-center">BUKTI / FOTO</th>
+            <th class="p-4">STATUS</th>
+            <th class="p-4">CATATAN / FEEDBACK</th>
+            <th class="p-4 text-center">AKSI</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="divide-y divide-slate-100 text-sm">
+          <tr>
+            <td colspan="9" class="text-center p-8 text-slate-400">
+              <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+              <p>Memuat data...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Form -->
+  <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+    <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden my-8">
+      <div class="px-6 py-4 border-b flex justify-between items-center bg-slate-50">
+        <h3 id="modalTitle" class="font-bold text-slate-800">Tambah Lamaran Kerja</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="appForm" onsubmit="saveData(event)" class="p-6 space-y-4">
+        <input type="hidden" id="rowIndex">
+        <input type="hidden" id="existingFotoUrl">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal Apply</label>
+          <input type="date" id="tanggal" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Perusahaan</label>
+          <input type="text" id="perusahaan" required placeholder="Contoh: PT Yamaha Music" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Posisi</label>
+          <input type="text" id="posisi" required placeholder="Contoh: Internal Audit Staff" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Apply Via</label>
+          <input type="text" id="applyVia" required placeholder="EMAIL, LinkedIn, JobStreet..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Upload Bukti / Screenshot</label>
+          <input type="file" id="fotoInput" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          <div id="fotoPreviewContainer" class="mt-2 hidden">
+            <a id="fotoPreviewLink" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1"><i class="fa-solid fa-image"></i> Lihat Bukti Ter-upload</a>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status / Progres</label>
+          <select id="status" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+            <option value="Terkirim">Terkirim</option>
+            <option value="Screening CV">Screening CV</option>
+            <option value="Psikotes">Psikotes</option>
+            <option value="Interview HR">Interview HR</option>
+            <option value="Interview User">Interview User</option>
+            <option value="Offering">Offering</option>
+            <option value="Diterima">Diterima</option>
+            <option value="Ditolak">Ditolak</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Catatan / Feedback Email</label>
+          <textarea id="catatan" rows="2" placeholder="Detail balasan email, jadwal tes, dll..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Batal</button>
+          <button type="submit" id="saveBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Simpan Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let activeTab = 'PUNYA MELIN';
+    let rawData = [];
+
+    window.onload = function() {
+      switchTab('PUNYA MELIN');
+    };
+
+    function switchTab(tabName) {
+      activeTab = tabName;
+      
+      const tabMelin = document.getElementById('tabMelin');
+      const tabOlan = document.getElementById('tabOlan');
+
+      if (tabName === 'PUNYA MELIN') {
+        tabMelin.className = "flex-1 py-3 text-center font-bold rounded-lg text-sm transition bg-blue-600 text-white shadow-sm";
+        tabOlan.className = "flex-1 py-3 text-center font-bold rounded-lg text-sm transition text-slate-500 hover:text-blue-600";
+      } else {
+        tabOlan.className = "flex-1 py-3 text-center font-bold rounded-lg text-sm transition bg-blue-600 text-white shadow-sm";
+        tabMelin.className = "flex-1 py-3 text-center font-bold rounded-lg text-sm transition text-slate-500 hover:text-blue-600";
+      }
+
+      loadData();
+    }
+
+    function loadData() {
+      document.getElementById('tableBody').innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center p-8 text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+            <p>Memuat data ${activeTab}...</p>
+          </td>
+        </tr>`;
+
+      google.script.run.withSuccessHandler(function(data) {
+        rawData = data;
+        renderTable(rawData);
+        updateStats(rawData);
+      }).getApplications(activeTab);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-slate-400">Belum ada data di ${activeTab}. Klik "Tambah Lamaran".</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map((item, index) => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-4 text-center font-medium text-slate-400">${index + 1}</td>
+          <td class="p-4 whitespace-nowrap">${item.tanggal || '-'}</td>
+          <td class="p-4 font-semibold text-slate-800">${item.perusahaan}</td>
+          <td class="p-4 text-slate-600">${item.posisi}</td>
+          <td class="p-4"><span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-medium">${item.applyVia}</span></td>
+          <td class="p-4 text-center">${getFotoButton(item.fotoUrl)}</td>
+          <td class="p-4">${getStatusBadge(item.status)}</td>
+          <td class="p-4 text-slate-500 max-w-xs truncate" title="${item.catatan}">${item.catatan || '-'}</td>
+          <td class="p-4 text-center whitespace-nowrap">
+            <button onclick="editItem(${item.rowIndex})" class="text-blue-600 hover:text-blue-800 p-1.5"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteItem(${item.rowIndex})" class="text-rose-600 hover:text-rose-800 p-1.5 ml-1"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function getFotoButton(url) {
+      if (!url) return `<span class="text-xs text-slate-300">-</span>`;
+      return `<a href="${url}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md font-medium transition"><i class="fa-solid fa-image"></i> Lihat Foto</a>`;
+    }
+
+    function getStatusBadge(status) {
+      const styles = {
+        'Terkirim': 'bg-blue-50 text-blue-700 border-blue-200',
+        'Screening CV': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        'Psikotes': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+        'Interview HR': 'bg-purple-50 text-purple-700 border-purple-200',
+        'Interview User': 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+        'Offering': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        'Diterima': 'bg-green-100 text-green-800 border-green-300 font-bold',
+        'Ditolak': 'bg-rose-50 text-rose-700 border-rose-200'
+      };
+      return `<span class="px-2.5 py-1 rounded-full text-xs font-medium border ${styles[status] || 'bg-gray-50 text-gray-700'}">${status}</span>`;
+    }
+
+    function updateStats(data) {
+      document.getElementById('statTotal').innerText = data.length;
+      document.getElementById('statInterview').innerText = data.filter(d => ['Interview HR', 'Interview User'].includes(d.status)).length;
+      document.getElementById('statAccepted').innerText = data.filter(d => d.status === 'Diterima').length;
+      document.getElementById('statRejected').innerText = data.filter(d => d.status === 'Ditolak').length;
+    }
+
+    function filterData() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = rawData.filter(item => {
+        const matchesSearch = item.perusahaan.toLowerCase().includes(search) || item.posisi.toLowerCase().includes(search);
+        const matchesStatus = status === '' || item.status === status;
+        return matchesSearch && matchesStatus;
+      });
+
+      renderTable(filtered);
+    }
+
+    function openModal() {
+      document.getElementById('appForm').reset();
+      document.getElementById('rowIndex').value = '';
+      document.getElementById('existingFotoUrl').value = '';
+      document.getElementById('fotoPreviewContainer').classList.add('hidden');
+      document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modalTitle').innerText = `Tambah Lamaran (${activeTab})`;
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    function editItem(rowIndex) {
+      const item = rawData.find(d => d.rowIndex === rowIndex);
+      if (!item) return;
+
+      document.getElementById('rowIndex').value = item.rowIndex;
+      document.getElementById('tanggal').value = item.tanggal;
+      document.getElementById('perusahaan').value = item.perusahaan;
+      document.getElementById('posisi').value = item.posisi;
+      document.getElementById('applyVia').value = item.applyVia;
+      document.getElementById('existingFotoUrl').value = item.fotoUrl || '';
+      document.getElementById('status').value = item.status;
+      document.getElementById('catatan').value = item.catatan;
+
+      if (item.fotoUrl) {
+        document.getElementById('fotoPreviewLink').href = item.fotoUrl;
+        document.getElementById('fotoPreviewContainer').classList.remove('hidden');
+      } else {
+        document.getElementById('fotoPreviewContainer').classList.add('hidden');
+      }
+
+      document.getElementById('modalTitle').innerText = `Edit Lamaran (${activeTab})`;
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function saveData(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.innerText = 'Menyimpan...';
+      saveBtn.disabled = true;
+
+      const fileInput = document.getElementById('fotoInput');
+      const file = fileInput.files[0];
+
+      const payload = {
+        activeTab: activeTab,
+        rowIndex: document.getElementById('rowIndex').value,
+        tanggal: document.getElementById('tanggal').value,
+        perusahaan: document.getElementById('perusahaan').value,
+        posisi: document.getElementById('posisi').value,
+        applyVia: document.getElementById('applyVia').value,
+        existingFotoUrl: document.getElementById('existingFotoUrl').value,
+        status: document.getElementById('status').value,
+        catatan: document.getElementById('catatan').value,
+        fotoBase64: null,
+        fotoName: null,
+        fotoType: null
+      };
+
+      const submitPayload = function() {
+        const handler = function() {
+          closeModal();
+          saveBtn.innerText = 'Simpan Data';
+          saveBtn.disabled = false;
+          loadData();
+        };
+
+        if (payload.rowIndex) {
+          google.script.run.withSuccessHandler(handler).updateApplication(payload);
+        } else {
+          google.script.run.withSuccessHandler(handler).addApplication(payload);
+        }
+      };
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          payload.fotoBase64 = e.target.result;
+          payload.fotoName = file.name;
+          payload.fotoType = file.type;
+          submitPayload();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        submitPayload();
+      }
+    }
+
+    function deleteItem(rowIndex) {
+      if (confirm(`Yakin ingin menghapus lamaran ini dari ${activeTab}?`)) {
+        google.script.run.withSuccessHandler(function() {
+          loadData();
+        }).deleteApplication(rowIndex, activeTab);
+      }
+    }
+  </script>
+</body>
+</html>
