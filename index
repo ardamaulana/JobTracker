@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Tracker</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome 6 Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Google Font: Inter / Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            dark: {
+              bg: '#0B0F17',
+              card: '#111827',
+              surface: '#1E293B',
+              border: '#334155',
+            },
+            cyber: {
+              blue: '#3B82F6',
+              cyan: '#06B6D4',
+              violet: '#8B5CF6',
+              emerald: '#10B981',
+              rose: '#F43F5E',
+              amber: '#F59E0B'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0F17;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Glassmorphism Effect */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Glowing Text & Borders */
+    .glow-blue {
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-[#0B0F17] text-slate-200 font-sans min-h-screen antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- Background Decorative Gradient Orbs -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-violet-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Top Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-800/80">
+      <div class="space-y-1">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white shadow-lg glow-cyan">
+            <i class="fa-solid fa-rocket text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              Job Tracker Hub
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400">Monitoring &amp; Kolaborasi Lamaran Kerja Real-time</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Switch Tab User (Melin / Olan) -->
+        <div class="p-1 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center space-x-1 shadow-inner">
+          <button id="tabMelin" onclick="switchTab('PUNYA MELIN')" class="px-4 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase transition-all duration-300 flex items-center gap-2">
+            <i class="fa-solid fa-user text-xs"></i> Melin
+          </button>
+          <button id="tabOlan" onclick="switchTab('PUNYA OLAN')" class="px-4 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase transition-all duration-300 flex items-center gap-2">
+            <i class="fa-solid fa-user text-xs"></i> Olan
+          </button>
+        </div>
+
+        <!-- Tombol Tambah Lamaran -->
+        <button onclick="openModal()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs sm:text-sm font-semibold rounded-xl flex items-center gap-2 shadow-lg glow-blue transition-all duration-300 active:scale-95">
+          <i class="fa-solid fa-plus text-sm"></i>
+          <span>Tambah</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ringkasan Statistik (Metric Cards) -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total -->
+      <div class="glass-card rounded-2xl p-5 relative overflow-hidden transition-all duration-300 glass-card-hover">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Apply</span>
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm border border-blue-500/20">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
+        </div>
+        <div id="statTotal" class="text-3xl font-extrabold text-white mt-3">0</div>
+        <span class="text-[11px] text-slate-500 mt-1 block">Seluruh riwayat pengiriman</span>
+      </div>
+
+      <!-- Interview -->
+      <div class="glass-card rounded-2xl p-5 relative overflow-hidden transition-all duration-300 glass-card-hover">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-purple-400">Tahap Interview</span>
+          <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm border border-purple-500/20">
+            <i class="fa-solid fa-comments"></i>
+          </div>
+        </div>
+        <div id="statInterview" class="text-3xl font-extrabold text-purple-300 mt-3">0</div>
+        <span class="text-[11px] text-slate-500 mt-1 block">HR &amp; User Interview</span>
+      </div>
+
+      <!-- Diterima -->
+      <div class="glass-card rounded-2xl p-5 relative overflow-hidden transition-all duration-300 glass-card-hover">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Diterima</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm border border-emerald-500/20">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+        </div>
+        <div id="statAccepted" class="text-3xl font-extrabold text-emerald-400 mt-3">0</div>
+        <span class="text-[11px] text-slate-500 mt-1 block">Offering &amp; Acceptance</span>
+      </div>
+
+      <!-- Ditolak -->
+      <div class="glass-card rounded-2xl p-5 relative overflow-hidden transition-all duration-300 glass-card-hover">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-rose-400">Ditolak</span>
+          <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-sm border border-rose-500/20">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </div>
+        </div>
+        <div id="statRejected" class="text-3xl font-extrabold text-rose-400 mt-3">0</div>
+        <span class="text-[11px] text-slate-500 mt-1 block">Belum rezeki / Rejected</span>
+      </div>
+    </section>
+
+    <!-- Toolbar Filter & Pencarian -->
+    <section class="glass-card rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <!-- Search Input -->
+      <div class="relative w-full sm:w-80">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text" id="searchInput" oninput="filterData()" placeholder="Cari perusahaan / posisi..." class="w-full bg-slate-900/80 text-white pl-9 pr-4 py-2.5 rounded-xl border border-slate-700/80 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs transition placeholder:text-slate-500">
+      </div>
+
+      <!-- Filter Status Dropdown -->
+      <div class="relative w-full sm:w-56">
+        <select id="statusFilter" onchange="filterData()" class="w-full bg-slate-900/80 text-slate-200 px-3.5 py-2.5 rounded-xl border border-slate-700/80 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs transition cursor-pointer">
+          <option value="">Semua Status Progres</option>
+          <option value="Terkirim">Terkirim</option>
+          <option value="Screening CV">Screening CV</option>
+          <option value="Psikotes">Psikotes</option>
+          <option value="Interview HR">Interview HR</option>
+          <option value="Interview User">Interview User</option>
+          <option value="Offering">Offering</option>
+          <option value="Diterima">Diterima</option>
+          <option value="Ditolak">Ditolak</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Tabel Data (Custom Futuristic Layout) -->
+    <section class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <th class="py-4 px-4 text-center w-12">#</th>
+              <th class="py-4 px-4">Tanggal</th>
+              <th class="py-4 px-4">Perusahaan &amp; Posisi</th>
+              <th class="py-4 px-4">Portal Apply</th>
+              <th class="py-4 px-4 text-center">Bukti / Docs</th>
+              <th class="py-4 px-4">Status Progres</th>
+              <th class="py-4 px-4">Catatan / Detail</th>
+              <th class="py-4 px-4 text-center w-24">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-800/60 text-xs">
+            <tr>
+              <td colspan="8" class="text-center py-12 text-slate-400">
+                <i class="fa-solid fa-atom fa-spin text-3xl text-cyan-400 mb-3"></i>
+                <p class="font-medium text-slate-300">Memuat data dari Google Sheets...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal Form (Cyber Glass Theme) -->
+  <div id="modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+    <div class="glass-card bg-[#111827] rounded-2xl w-full max-w-lg border border-slate-700 shadow-2xl overflow-hidden my-8 transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-2 h-2 rounded-full bg-cyan-400 glow-cyan"></div>
+          <h3 id="modalTitle" class="font-bold text-sm text-white uppercase tracking-wider">Form Lamaran Kerja</h3>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form Body -->
+      <form id="appForm" onsubmit="saveData(event)" class="p-6 space-y-4">
+        <input type="hidden" id="rowIndex">
+        <input type="hidden" id="existingFotoUrl">
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tanggal Apply</label>
+            <input type="date" id="tanggal" required class="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Apply Via</label>
+            <input type="text" id="applyVia" required placeholder="LinkedIn, JobStreet, Email..." class="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs placeholder:text-slate-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nama Perusahaan</label>
+          <input type="text" id="perusahaan" required placeholder="Contoh: PT Yamaha Music" class="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs placeholder:text-slate-600">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Posisi Jabatan</label>
+          <input type="text" id="posisi" required placeholder="Contoh: Internal Audit Staff" class="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs placeholder:text-slate-600">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status Progres</label>
+          <select id="status" class="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs">
+            <option value="Terkirim">Terkirim</option>
+            <option value="Screening CV">Screening CV</option>
+            <option value="Psikotes">Psikotes</option>
+            <option value="Interview HR">Interview HR</option>
+            <option value="Interview User">Interview User</option>
+            <option value="Offering">Offering</option>
+            <option value="Diterima">Diterima</option>
+            <option value="Ditolak">Ditolak</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Upload Bukti / Screenshot</label>
+          <input type="file" id="fotoInput" accept="image/*" class="w-full text-xs text-slate-400 border border-slate-700 rounded-xl bg-slate-900 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/10 file:text-cyan-400 hover:file:bg-cyan-500/20 cursor-pointer">
+          <div id="fotoPreviewContainer" class="mt-2 hidden">
+            <a id="fotoPreviewLink" target="_blank" class="text-xs text-cyan-400 hover:underline inline-flex items-center gap-1.5 font-medium">
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Lihat Bukti Ter-upload
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Catatan / Feedback Email</label>
+          <textarea id="catatan" rows="3" placeholder="Detail balasan email, tanggal wawancara, link zoom, dll..." class="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-xs placeholder:text-slate-600"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">Batal</button>
+          <button type="submit" id="saveBtn" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white rounded-xl text-xs font-semibold shadow-md glow-blue transition">Simpan Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    let activeTab = 'PUNYA MELIN';
+    let rawData = [];
+
+    window.onload = function() {
+      switchTab('PUNYA MELIN');
+    };
+
+    function switchTab(tabName) {
+      activeTab = tabName;
+      
+      const tabMelin = document.getElementById('tabMelin');
+      const tabOlan = document.getElementById('tabOlan');
+
+      if (tabName === 'PUNYA MELIN') {
+        tabMelin.className = "px-4 py-2 rounded-lg text-xs font-bold tracking-wide uppercase transition-all duration-300 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md glow-cyan";
+        tabOlan.className = "px-4 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800/50";
+      } else {
+        tabOlan.className = "px-4 py-2 rounded-lg text-xs font-bold tracking-wide uppercase transition-all duration-300 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md glow-cyan";
+        tabMelin.className = "px-4 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800/50";
+      }
+
+      loadData();
+    }
+
+    function loadData() {
+      document.getElementById('tableBody').innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-12 text-slate-400">
+            <i class="fa-solid fa-atom fa-spin text-3xl text-cyan-400 mb-3"></i>
+            <p class="font-medium text-slate-300">Memuat data ${activeTab}...</p>
+          </td>
+        </tr>`;
+
+      google.script.run.withSuccessHandler(function(data) {
+        rawData = data;
+        renderTable(rawData);
+        updateStats(rawData);
+      }).getApplications(activeTab);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-12 text-slate-500">
+              <i class="fa-regular fa-folder-open text-3xl mb-2 text-slate-600 block"></i>
+              Belum ada data lamaran untuk ${activeTab}. Klik tombol <strong>Tambah</strong> di atas.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map((item, index) => `
+        <tr class="hover:bg-slate-800/40 transition duration-150">
+          <td class="py-4 px-4 text-center font-mono text-xs text-slate-500">${index + 1}</td>
+          <td class="py-4 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${item.tanggal || '-'}</td>
+          <td class="py-4 px-4">
+            <div class="font-bold text-white text-sm">${item.perusahaan}</div>
+            <div class="text-slate-400 text-xs font-medium">${item.posisi}</div>
+          </td>
+          <td class="py-4 px-4">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+              <i class="fa-solid fa-globe mr-1.5 text-[10px] text-cyan-400"></i> ${item.applyVia}
+            </span>
+          </td>
+          <td class="py-4 px-4 text-center">${getFotoButton(item.fotoUrl)}</td>
+          <td class="py-4 px-4">${getStatusBadge(item.status)}</td>
+          <td class="py-4 px-4 text-slate-400 max-w-xs truncate" title="${item.catatan}">${item.catatan || '<span class="text-slate-600">-</span>'}</td>
+          <td class="py-4 px-4 text-center whitespace-nowrap">
+            <div class="flex items-center justify-center space-x-1">
+              <button onclick="editItem(${item.rowIndex})" class="w-7 h-7 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition border border-blue-500/20" title="Edit">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="deleteItem(${item.rowIndex})" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center transition border border-rose-500/20" title="Hapus">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function getFotoButton(url) {
+      if (!url) return `<span class="text-slate-600 text-xs">-</span>`;
+      return `
+        <a href="${url}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg font-medium transition">
+          <i class="fa-regular fa-image"></i> Lihat
+        </a>`;
+    }
+
+    function getStatusBadge(status) {
+      const styles = {
+        'Terkirim': 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+        'Screening CV': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+        'Psikotes': 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        'Interview HR': 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+        'Interview User': 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/30',
+        'Offering': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+        'Diterima': 'bg-green-500/20 text-green-300 border-green-500/50 font-bold glow-cyan',
+        'Ditolak': 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+      };
+      
+      const badgeStyle = styles[status] || 'bg-slate-800 text-slate-300 border-slate-700';
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${badgeStyle}">${status}</span>`;
+    }
+
+    function updateStats(data) {
+      document.getElementById('statTotal').innerText = data.length;
+      document.getElementById('statInterview').innerText = data.filter(d => ['Interview HR', 'Interview User'].includes(d.status)).length;
+      document.getElementById('statAccepted').innerText = data.filter(d => d.status === 'Diterima').length;
+      document.getElementById('statRejected').innerText = data.filter(d => d.status === 'Ditolak').length;
+    }
+
+    function filterData() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = rawData.filter(item => {
+        const matchesSearch = item.perusahaan.toLowerCase().includes(search) || item.posisi.toLowerCase().includes(search);
+        const matchesStatus = status === '' || item.status === status;
+        return matchesSearch && matchesStatus;
+      });
+
+      renderTable(filtered);
+    }
+
+    function openModal() {
+      document.getElementById('appForm').reset();
+      document.getElementById('rowIndex').value = '';
+      document.getElementById('existingFotoUrl').value = '';
+      document.getElementById('fotoPreviewContainer').classList.add('hidden');
+      document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modalTitle').innerText = `Tambah Lamaran (${activeTab})`;
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    function editItem(rowIndex) {
+      const item = rawData.find(d => d.rowIndex === rowIndex);
+      if (!item) return;
+
+      document.getElementById('rowIndex').value = item.rowIndex;
+      document.getElementById('tanggal').value = item.tanggal;
+      document.getElementById('perusahaan').value = item.perusahaan;
+      document.getElementById('posisi').value = item.posisi;
+      document.getElementById('applyVia').value = item.applyVia;
+      document.getElementById('existingFotoUrl').value = item.fotoUrl || '';
+      document.getElementById('status').value = item.status;
+      document.getElementById('catatan').value = item.catatan;
+
+      if (item.fotoUrl) {
+        document.getElementById('fotoPreviewLink').href = item.fotoUrl;
+        document.getElementById('fotoPreviewContainer').classList.remove('hidden');
+      } else {
+        document.getElementById('fotoPreviewContainer').classList.add('hidden');
+      }
+
+      document.getElementById('modalTitle').innerText = `Edit Lamaran (${activeTab})`;
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function saveData(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.innerText = 'Menyimpan...';
+      saveBtn.disabled = true;
+
+      const fileInput = document.getElementById('fotoInput');
+      const file = fileInput.files[0];
+
+      const payload = {
+        activeTab: activeTab,
+        rowIndex: document.getElementById('rowIndex').value,
+        tanggal: document.getElementById('tanggal').value,
+        perusahaan: document.getElementById('perusahaan').value,
+        posisi: document.getElementById('posisi').value,
+        applyVia: document.getElementById('applyVia').value,
+        existingFotoUrl: document.getElementById('existingFotoUrl').value,
+        status: document.getElementById('status').value,
+        catatan: document.getElementById('catatan').value,
+        fotoBase64: null,
+        fotoName: null,
+        fotoType: null
+      };
+
+      const submitPayload = function() {
+        const handler = function() {
+          closeModal();
+          saveBtn.innerText = 'Simpan Data';
+          saveBtn.disabled = false;
+          loadData();
+        };
+
+        if (payload.rowIndex) {
+          google.script.run.withSuccessHandler(handler).updateApplication(payload);
+        } else {
+          google.script.run.withSuccessHandler(handler).addApplication(payload);
+        }
+      };
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          payload.fotoBase64 = e.target.result;
+          payload.fotoName = file.name;
+          payload.fotoType = file.type;
+          submitPayload();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        submitPayload();
+      }
+    }
+
+    function deleteItem(rowIndex) {
+      if (confirm(`Yakin ingin menghapus lamaran ini dari ${activeTab}?`)) {
+        google.script.run.withSuccessHandler(function() {
+          loadData();
+        }).deleteApplication(rowIndex, activeTab);
+      }
+    }
+  </script>
+</body>
+</html>
